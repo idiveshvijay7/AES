@@ -1,0 +1,21 @@
+#include<stdio.h>
+#include<string.h>
+#include<math.h>
+char xf(char temp){
+    char g;
+    if((temp>>7) == 0){
+       g = temp<<1;
+    }
+    else{
+        g = (temp<<1) ^ 27;
+    }
+    return g;
+}
+
+int main(){ 
+    printf("Enter 4 character\n");
+    char c1 =0xf2 ,c2 =0x0a ,c3 = 0x22 ,c4 = 0x5c;
+    
+    char s0 = xf(c1) ^ xf(c2) ^ (c2) ^ (c3) ^ (c4);
+    printf("%x",s0);
+}
