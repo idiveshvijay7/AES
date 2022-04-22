@@ -5,11 +5,11 @@
 int Nr = 10; /* Number of round(Nr)*/
 int Nb_k = 4;  /* Number of block of key*/
 
-unsigned char in[16];          // plaintext block input array, 明文區塊輸入char陣列
-unsigned char out[16];         // ciphertext block output array, 密文區塊輸出陣列
-unsigned char state[4][4];     // temp state array in encrypt state, 加密運算過程中的的狀態陣列 4 * 4 
-unsigned char Roundkey[240];    // round key array, stored Main Key and Expanded Key (Ex: AES-128(44words/176 bytes), AES-256(60w/260bytes)), 儲存主要鑰匙跟擴充鑰匙的陣列, w0(index 0 ~ 3) w1(index 4 ~ 7)....
-unsigned char Key[16];         // Main key(input key Ex. AES-128(18 char), AES-256(32 char)), 輸入的金鑰
+unsigned char in[16];          // plaintext block input array, 
+unsigned char out[16];         // ciphertext block output array, 
+unsigned char state[4][4];     // temp state array in encrypt state, 4 * 4 
+unsigned char Roundkey[240];    // round key array, stored Main Key and Expanded Key (Ex: AES-128(44words/176 bytes), 
+unsigned char Key[16];         // Main key(input key Ex. AES-128(18 char), 
 
 
 /* S-box */
@@ -64,8 +64,8 @@ void KeyExpansion(){
 
     for (int i = 4;i<44;i++)
     {
-        for (int j = 0;j < 4;j++){ // 處理每個block(W)
-            tempByte[j] = Roundkey[(i - 1) * 4 + j]; // 要新增一個block(Word)故取前一個的W值存入tempW
+        for (int j = 0;j < 4;j++){ 
+            tempByte[j] = Roundkey[(i - 1) * 4 + j]; 
         }
         if (i % Nb_k == 0){
 
@@ -166,8 +166,6 @@ void Cipher()
     int round = 0;
     
     /**
-     *  將in[](plaintext) 轉換成 column 排列方式
-     *  圖示:
      *  [b0 b1 ... b15] -> [b0 b4 b8  b12
      *                      b1 b5 b9  b13
      *                      b2 b6 b10 b14
