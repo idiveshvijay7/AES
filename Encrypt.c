@@ -1,27 +1,11 @@
-/**
- * AES Encryption Sysytem 
- * The chinese is encoded by UTF-8
- * Implment AES-128, AES-192, AES-256
- * 
- * 
- * The Encrpytion and decryption on 'char' 
- * Ex: AES-128
- * plaintext: 'abcdefghijklmnop'
- * key: 'abcdefghijklmnop'
- * 
- * Both English and chinese are commented in program
- */
+
 
 #include <stdio.h>
-/** plaintext or ciphertext 32bit block number (4, 128bits) , 1 block is diveded to 4 subblock
- *  Each sublock is 8 bit = 1 character
- *  AES中，規範只允許 128bits 輸入，每個 block 定義為代表 column (一列4個小區塊，每區塊8bits)
- *  固定義 Number of block(Nb = 4) (4 * block size = 128)
- */
+
 #define Nb 4 
 
-int Nr = 10; /* Number of round(Nr), 加密運算執行回合數, AES-128(10r), AES-192(12), AES-256(14)*/
-int Nb_k = 4;  /* Number of block of key, 鑰匙(每block-32bits)的block數量 AES-128(4 block), AES-192(6), AES-256(8) */
+int Nr = 10; /* Number of round(Nr),
+int Nb_k = 4;  /* Number of block of key, 
 
 unsigned char in[16];          // plaintext block input array, 明文區塊輸入char陣列
 unsigned char out[16];         // ciphertext block output array, 密文區塊輸出陣列
@@ -77,7 +61,7 @@ int S_Box_Inv[256] =
  * Rcon used in KeyExpansion
  * this Rcon table can gernerate from GF(2^8)
  * Rcon[0] will not be used(Easy to code), set any redundant num
- * AES uses up to rcon[10] for AES-128 (as 11 round keys are needed), up to rcon[8] for AES-192, and up to rcon[7] for AES-256.
+ * AES uses up to rcon[10] for AES-128 (as 11 round keys are needed).
  */
 int Rcon[11] = 
 {
@@ -86,24 +70,15 @@ int Rcon[11] =
 };
 
 
-/** Key Expansion function, 擴充鑰匙函數產生所有鑰匙
- *  Input: Key[](主鑰匙), Nr(round), Nb, Nb_k(AES-128(4 block), AES-192(6), AES-256(8))
- *  Output: Roundkey[], 產生所有子鑰匙 - AES-128(44), 192(52), 256(60), 
+/** Key Expansion function,
+ *  Input: Key[], Nr(round), Nb, Nb_k(AES-128(4 block)
+ *  Output: Roundkey[], 產生所有子鑰匙 - AES-128(44)
  */
 void KeyExpansion(){
     unsigned char tempByte[4]; // store 4 temp Byte(1 word) when generate subkey
     unsigned char a0;       // temp - store byte when execute RotWord function
     
-    /**
-     * First Round subKey = Main/Input Key, Divide to {Nb_k} block (each 32bits) [w0, w1, w2, w3]
-     * each block divide to 4 subblock(8bit)
-     * Ex: AES-128, Nb_k = 4, 4 block W0 ~ W3
-     * Ex: AES-256, Nb_k = 8, 8 block W0 ~ W7
-     * 
-     * 第一回合子鑰匙 = 主鑰匙分成四個(Nb=4) 8 位元區塊 (W0=32 bits)
-     * 第一回合需要 Nk 個鑰匙區塊, AES-128:Nk=4, W0 ~ W3 
-     * 一個小block為8 bit = 1 character
-     */
+    
     for (int i = 0;i < Nb_k;i++){
         Roundkey[i * 4] = Key[i * 4];
         Roundkey[i *4 + 1] = Key[i * 4 + 1];
@@ -113,20 +88,17 @@ void KeyExpansion(){
 
     /**
      * Generate other subkey, 
-     * 產生其他回合鑰匙: 
-     * Ex: AES-128: i= 4 ~ 43, 共 11 個 4block(128bit), 需 44 個word (W0 ~ W43).
-     * Ex: AES-256: i = 8 ~ 59, 共需要 15個 4block(128bit), 需60word(W0~ W59)
-     * 每跑完一次產生一個block
+     * Ex: AES-128: i= 4 ~ 43, 共 11  4block(128bit),  44 個word (W0 ~ W43).
      */
     for (int i = Nb_k;i < (Nb * (Nr + 1));i++)
     {
-        for (int j = 0;j < 4;j++){ // 處理每個block(W)
-            tempByte[j] = Roundkey[(i - 1) * 4 + j]; // 要新增一個block(Word)故取前一個的W值存入tempW
+        for (int j = 0;j < 4;j++){ // block(W)
+            tempByte[j] = Roundkey[(i - 1) * 4 + j]; // block(Word)tempW
         }
         if (i % Nb_k == 0){
             /**
              * Ex: AES-128 when generate W4, will use W3 do SubWord(RotWord(tempW)) XOR Rcon[4/4]
-             *     AES-128 i 是 4 的倍數的 Wi 用 Wi-1產生 Wi =  SubWord(RotWord(Wi-1)) XOR Rcon[i/4]
+             *     AES-128 i Wi =  SubWord(RotWord(Wi-1)) XOR Rcon[i/4]
              */
 
             // RotWord function, [a0, a1, a2, a3](4byte) left circular shift in a word [a1, a2, a3, a0]
@@ -158,11 +130,10 @@ void KeyExpansion(){
 }
 
 
-// AddRoundKey, 鑰匙XOR函數
+// AddRoundKey
 void AddRoundKey(int round)
 {
     /**
-     * 根據round來使用key(每次用1個block = 16byte)
      * first key index = round * 16 bytes = round * Nb * 4;
      * Nb = 4
      */
@@ -208,62 +179,7 @@ void ShiftRows_Inv(){
     state[3][3] = tempByte;
 }
 
-/**
- *  xtime macro: (input * {02}) mod {1b}  GF(2^8)
- *  02 = x = 00000010(binary) over GF(2^8)
- *  1b = x^8 + x^4 + x^3 + x^1 + 1 = 00011011(binary) over GF(2^8) 
- *  
- *  
- *  (x << 1) -- 代表 input * {02}  = shift 1 bit
- *  (x >> 7) -- input / 2^7, 代表只取第8個bit
- *  ((x >> 7) & 1) * 0x1b ----
- *  第 8 個 bit 若為 1 則代表 mod(2^7) 後會剩 => 00011011, 最後整個xtime(x)變成(x << 1) xor 00011011 (詳情請見GF(2^n)快速 mod運算的方式)
- *  第 8 個 bit 若為 0 會變成0 * 0x1b,                    最後整個xtime(x) (x << 1) XOR 0 = (x << 1)
- */
-//#define xtime(x)   ((x << 1) ^ (((x >> 7) & 1) * 0x1b))
 
-/** Multiplty macro: (x * y) mod GF(2^8)
- *  (y & 0x01) * x) 代表第1個(rightmost)bit 若為 1 則 為 input-x, 若為0 則代表 0(沒影響的XOR)
- *  ((y >> 1 & 0x01) * xtime(x)) 代表第2個bit 若為1 則為 input * {02}, 若為0 則代表 0(沒影響XOR)
- *   ...同理
- *  因為逆矩陣常數最多到14 (4bit即可表示) 故做到 (y >> 4 & 0x01)
- */
-//#define Multiply(x,y)   ((y      & 0x01) * x) \
-                      ^ ((y >> 1 & 0x01) * xtime(x)) \
-                      ^ ((y >> 2 & 0x01) * xtime(xtime(x))) \
-                      ^ ((y >> 3 & 0x01) * xtime(xtime(xtime(x)))) \
-                      ^ ((y >> 4 & 0x01) * xtime(xtime(xtime(xtime(x)))))
-
-/** InvMixColumns() 混合行運算函數 
- * 
- *  執行4次(4 subblock) 每次的column執行如下
- *  b0     [14 11 13  9   [d0  
- *  b1       9 14 11 13    d1
- *  b2  =   13  9 14 11    d2
- *  b3      11 13  9 14]   d3]
- *  
- *  詳細執行可查看wiki: https://en.wikipedia.org/wiki/Rijndael_MixColumns
- */
-// void MixColumns_Inv()
-// {
-//     unsigned char d0, d1, d2, d3;
-//     for (int i = 0;i < 4;i++){
-
-//         d0 = state[0][i];
-//         d1 = state[1][i];
-//         d2 = state[2][i];
-//         d3 = state[3][i];
-
-//         state[0][i] = Multiply(d0, 0x0e) ^ Multiply(d1, 0x0b) ^ 
-//                       Multiply(d2, 0x0d) ^ Multiply(d3, 0x09);
-//         state[1][i] = Multiply(d0, 0x09) ^ Multiply(d1, 0x0e) ^ 
-//                       Multiply(d2, 0x0b) ^ Multiply(d3, 0x0d);
-//         state[2][i] = Multiply(d0, 0x0d) ^ Multiply(d1, 0x09) ^ 
-//                       Multiply(d2, 0x0e) ^ Multiply(d3, 0x0b);
-//         state[3][i] = Multiply(d0, 0x0b) ^ Multiply(d1, 0x0d) ^ 
-//                       Multiply(d2, 0x09) ^ Multiply(d3, 0x0e);
-//     }
-// }
 /* galois multiplication */
 char AES_GMul(char a, char b)
 {
@@ -316,7 +232,6 @@ void MixColumns_Inv()
 /**
  *  Cihper_Inv  AES Decrypt function
  *  Inverse to Encrypt process
- *  注意: 整個程序是相反的 round裡面步驟都是與加密不同
  */
 void Cipher_Inv(){
 
@@ -333,7 +248,7 @@ void Cipher_Inv(){
     //     for (int j = 0;j < 4;j++)
     //         state[j][i] = in[i * 4 + j]; // transform input, 將in[] 轉成 column形式(w0, w1, w2, w3)
     
-    // round Nr : add round key, 第Nr回合: 僅執行-key XOR block - key使用
+    // round Nr : add round key, 
     AddRoundKey(Nr);
 
     // Round Nr-1 ~ 1, 反覆執行 1 ~ Nr-1回合
